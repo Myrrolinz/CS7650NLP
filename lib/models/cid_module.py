@@ -208,6 +208,7 @@ class GFD(nn.Module):
         
         self.dataset = cfg.DATASET.DATASET
         
+        # TODO: change how to generate prompt 
         self.category_dict = {
                     'joint': ['nose', 'left eye', 'right eye', 'left ear', 'right ear', 
                     'left shoulder', 'right shoulder', 'left elbow', 'right elbow', 
@@ -339,6 +340,10 @@ class GFD(nn.Module):
         text_list = self.generate_labels(img_features, instances)
         
         with torch.no_grad():
+            # TODO: change VLM
+            # TODO: second experiment
+            
+            # LLaVA, LLamba
             ins_loc_text = clip.tokenize(text_list)
             ins_text_feats = self.clip_pretrained.encode_text(ins_loc_text.to(self.device))
             
@@ -348,7 +353,10 @@ class GFD(nn.Module):
                 inst_text_features_norm = ins_text_feats.float()   
         
             
-        tgt = img_features_.reshape(b, h*w, -1)         
+        tgt = img_features_.reshape(b, h*w, -1)
+        
+        # TODO: change decoder
+        # TODO: fourth experiment     
         inst_text_features = self.transformer_decoder_ins(inst_text_features_norm.unsqueeze(1), tgt.detach())            
         inst_text_features = inst_text_features  / (inst_text_features.norm(dim=-1, keepdim=True) + 1e-5) 
                
@@ -365,6 +373,7 @@ class GFD(nn.Module):
     
     
     def generate_labels(self, img_features, instances):
+        # TODO: change this
         b, c, h, w = img_features.size()
         gt_center = instances['instance_coord']
 
@@ -409,11 +418,22 @@ class GFD(nn.Module):
             dep_text = depth[l_d]
         
             if l_oc < 1:
-                prompt_form = 'a {} occluded person on {}.'
+                person_prompt = 'a {} occluded person on {}.'
             else:
-                prompt_form = 'a {} person on {}.'
+                person_prompt = 'a {} person on {}.'
                 
-            text_list.append(prompt_form.format(dep_text, loc_text))
+            # TODO: generate skeleton coordinate prompt
+            # TODO: first experiment
+            skeleton_prompt = ''
+            
+            # TODO: add image caption
+            # TODO: third experiment
+            # Tianyu Wang
+            caption_prompt = ''
+            
+            total_prompt = person_prompt + skeleton_prompt + caption_prompt
+            
+            text_list.append(total_prompt.format(dep_text, loc_text))
         
         return text_list
 
